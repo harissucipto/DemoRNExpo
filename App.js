@@ -1,35 +1,175 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
+import { Camera } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
+import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
 
-// You can import supported modules from npm
-import { Card } from 'react-native-paper';
-
-// or any files within the Snack
-import AssetExample from './components/AssetExample';
+const PERMISSIONS = [
+  {
+    id: 'camera',
+    label: 'Camera',
+    description: 'Needed to take photos or scan barcodes.',
+    request: async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      return status;
+    },
+  },
+  {
+    id: 'mediaLibrary',
+    label: 'Media Library',
+    description: 'Required to save photos or pick them from gallery.',
+    request: async () => {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      return status;
+    },
+  },
+  {
+    id: 'location',
+    label: 'Location (Foreground)',
+    description: 'Used for location-aware features like nearby stores.',
+    request: async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      return status;
+    },
+  },
+  {
+    id: 'notifications',
+    label: 'Notifications',
+    description: 'Allows sending reminders or marketing notifications.',
+    request: async () => {
+      const settings = await Notifications.getPermissionsAsync();
+      if (settings.granted || settings.status === 'granted') {
+        return 'granted';
+      }
+      const { status } = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowSound: true,
+          allowBadge: true,
+        },
+      });
+      return status;
+    },
+  },
+];
 
 export default function App() {
+  const [statuses, setStatuses] = useState(
+    PERMISSIONS.reduce((acc, curr) => {
+      acc[curr.id] = 'unknown';
+      return acc;
+    }, {}),
+  );
+
+  const handleRequest = async (permission) => {
+    setStatuses((prev) => ({ ...prev, [permission.id]: 'checking…' }));
+    try {
+      const status = await permission.request();
+      setStatuses((prev) => ({ ...prev, [permission.id]: status }));
+    } catch (error) {
+      setStatuses((prev) => ({ ...prev, [permission.id]: 'error' }));
+      console.warn(`Failed requesting ${permission.id}:`, error);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.paragraph}>
-        Change code in the editor and watch it change on your phone
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.heading}>Permission Playground</Text>
+      <Text style={styles.subheading}>
+        Tap a card to request that permission. Use this as a Snack template to
+        verify behavior on-device.
       </Text>
-      <Card>
-        <AssetExample />
-      </Card>
-    </View>
+      {PERMISSIONS.map((permission) => (
+        <Pressable
+          key={permission.id}
+          style={({ pressed }) => [
+            styles.card,
+            pressed && styles.cardPressed,
+          ]}
+          onPress={() => handleRequest(permission)}
+        >
+          <View style={styles.cardContent}>
+            <View style={styles.cardText}>
+              <Text style={styles.cardTitle}>{permission.label}</Text>
+              <Text style={styles.cardDescription}>
+                {permission.description}
+              </Text>
+            </View>
+            <View style={styles.statusPill}>
+              <Text style={styles.statusText}>
+                {statuses[permission.id] ?? 'unknown'}
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: '#ecf0f1',
-    padding: 8,
+    flexGrow: 1,
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    backgroundColor: '#f6f8fb',
   },
-  paragraph: {
-    margin: 24,
-    fontSize: 18,
-    fontWeight: 'bold',
+  heading: {
+    fontSize: 28,
+    fontWeight: '700',
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  subheading: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#4b5563',
+    marginBottom: 24,
+  },
+  card: {
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  cardPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.95,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardText: {
+    flex: 1,
+    paddingRight: 16,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  statusPill: {
+    borderRadius: 999,
+    backgroundColor: '#e5e7eb',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#111827',
+    textTransform: 'uppercase',
   },
 });
