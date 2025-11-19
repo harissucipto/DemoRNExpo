@@ -4,6 +4,10 @@ import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import * as Contacts from 'expo-contacts';
 import * as Calendar from 'expo-calendar';
+import CameraDemo from './components/CameraDemo';
+import LocationDemo from './components/LocationDemo';
+import ContactsDemo from './components/ContactsDemo';
+import CalendarDemo from './components/CalendarDemo';
 
 const PERMISSIONS = [
   {
@@ -70,6 +74,7 @@ export default function App() {
         Tap a card to request that permission. Use this as a Snack template to
         verify behavior on-device.
       </Text>
+
       {PERMISSIONS.map((permission) => (
         <Pressable
           key={permission.id}
@@ -94,6 +99,14 @@ export default function App() {
           </View>
         </Pressable>
       ))}
+
+      <View style={styles.demoSection}>
+        <Text style={styles.demoHeading}>Demos (after permission granted)</Text>
+        <CameraDemo status={statuses.camera} />
+        <LocationDemo status={statuses.location} />
+        <ContactsDemo status={statuses.contacts} />
+        <CalendarDemo status={statuses.calendar} />
+      </View>
     </ScrollView>
   );
 }
@@ -161,5 +174,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111827',
     textTransform: 'uppercase',
+  },
+  demoSection: {
+    marginTop: 24,
+  },
+  demoHeading: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#111827',
   },
 });
