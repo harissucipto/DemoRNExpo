@@ -15,6 +15,8 @@
     "expo-location": "~19.0.7",
     "expo-notifications": "~0.32.13",
     "expo-constants": "~18.0.10",
+    "expo-contacts": "*",
+    "expo-calendar": "*",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "@expo/vector-icons": "^15.0.3",

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
 import { Camera } from 'expo-camera';
-import * as MediaLibrary from 'expo-media-library';
 import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
+import * as Contacts from 'expo-contacts';
+import * as Calendar from 'expo-calendar';
 
 const PERMISSIONS = [
   {
@@ -12,15 +12,6 @@ const PERMISSIONS = [
     description: 'Needed to take photos or scan barcodes.',
     request: async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
-      return status;
-    },
-  },
-  {
-    id: 'mediaLibrary',
-    label: 'Media Library',
-    description: 'Required to save photos or pick them from gallery.',
-    request: async () => {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
       return status;
     },
   },
@@ -34,21 +25,20 @@ const PERMISSIONS = [
     },
   },
   {
-    id: 'notifications',
-    label: 'Notifications',
-    description: 'Allows sending reminders or marketing notifications.',
+    id: 'contacts',
+    label: 'Contacts',
+    description: 'Lets the app read your contacts to help with sharing or invites.',
     request: async () => {
-      const settings = await Notifications.getPermissionsAsync();
-      if (settings.granted || settings.status === 'granted') {
-        return 'granted';
-      }
-      const { status } = await Notifications.requestPermissionsAsync({
-        ios: {
-          allowAlert: true,
-          allowSound: true,
-          allowBadge: true,
-        },
-      });
+      const { status } = await Contacts.requestPermissionsAsync();
+      return status;
+    },
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    description: 'Allows reading your calendars for scheduling and reminders.',
+    request: async () => {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
       return status;
     },
   },
