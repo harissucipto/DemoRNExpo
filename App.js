@@ -8,6 +8,7 @@ import CameraDemo from './components/CameraDemo';
 import LocationDemo from './components/LocationDemo';
 import ContactsDemo from './components/ContactsDemo';
 import CalendarDemo from './components/CalendarDemo';
+import FormDemo from './components/FormDemo';
 
 const PERMISSIONS = [
   {
@@ -55,6 +56,8 @@ export default function App() {
       return acc;
     }, {}),
   );
+
+  const [lastFormSubmission, setLastFormSubmission] = useState(null);
 
   const handleRequest = async (permission) => {
     setStatuses((prev) => ({ ...prev, [permission.id]: 'checking…' }));
@@ -106,6 +109,15 @@ export default function App() {
         <LocationDemo status={statuses.location} />
         <ContactsDemo status={statuses.contacts} />
         <CalendarDemo status={statuses.calendar} />
+      </View>
+
+      <View style={styles.demoSection}>
+        <Text style={styles.demoHeading}>Form & Props/State Demo</Text>
+        <FormDemo
+          title="Simple registration form"
+          onSubmitForm={setLastFormSubmission}
+          lastSubmitted={lastFormSubmission}
+        />
       </View>
     </ScrollView>
   );
