@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import * as Contacts from 'expo-contacts';
@@ -71,7 +79,15 @@ export default function App() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
       <Text style={styles.heading}>Permission Playground</Text>
       <Text style={styles.subheading}>
         Tap a card to request that permission. Use this as a Snack template to
@@ -111,24 +127,28 @@ export default function App() {
         <CalendarDemo status={statuses.calendar} />
       </View>
 
-      <View style={styles.demoSection}>
-        <Text style={styles.demoHeading}>Form & Props/State Demo</Text>
-        <FormDemo
-          title="Simple registration form"
-          onSubmitForm={setLastFormSubmission}
-          lastSubmitted={lastFormSubmission}
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.demoSection}>
+          <Text style={styles.demoHeading}>Form & Props/State Demo</Text>
+          <FormDemo
+            title="Simple registration form"
+            onSubmitForm={setLastFormSubmission}
+            lastSubmitted={lastFormSubmission}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#f6f8fb',
+  },
   container: {
     flexGrow: 1,
     paddingVertical: 48,
     paddingHorizontal: 24,
-    backgroundColor: '#f6f8fb',
   },
   heading: {
     fontSize: 28,
