@@ -1,21 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 
 export default function FormDemo({ title, onSubmitForm, lastSubmitted }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
+  const nameInputRef = useRef(null);
+  const emailInputRef = useRef(null);
+  const [submitError, setSubmitError] = useState('');
+
+  const validateName = (value) => {
+    const trimmed = value.trim();
+    let message = '';
+
+    if (!trimmed) {
+      message = 'Name is required.';
+    } else if (trimmed.length < 2) {
+      message = 'Name must be at least 2 characters.';
+    }
+
+    setErrors((prev) => ({ ...prev, name: message }));
+    return !message;
+  };
+
+  const validateEmail = (value) => {
+    const trimmed = value.trim();
+    let message = '';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmed) {
+      message = 'Email is required.';
+    } else if (!emailRegex.test(trimmed)) {
+      message = 'Please enter a valid email address.';
+    }
+
+    setErrors((prev) => ({ ...prev, email: message }));
+    return !message;
+  };
+
+  const validate = () => {
+    const okName = validateName(name);
+    const okEmail = validateEmail(email);
+
+    if (!okName && nameInputRef.current) {
+      nameInputRef.current.focus();
+    } else if (okName && !okEmail && emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+
+    return okName && okEmail;
+  };
 
   const handleSubmit = () => {
-    if (!name.trim() || !email.trim()) {
-      setError('Please enter both name and email.');
+    const isValid = validate();
+    if (!isValid) {
+      setSubmitError('Please fix the fields highlighted in red before submitting.');
       return;
     }
 
-    setError('');
-    onSubmitForm({ name: name.trim(), email: email.trim() });
+    setSubmitError('');
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    onSubmitForm({ name: trimmedName, email: trimmedEmail });
     setName('');
     setEmail('');
+    setErrors({});
   };
 
   return (
@@ -24,27 +75,37 @@ export default function FormDemo({ title, onSubmitForm, lastSubmitted }) {
 
       <Text style={styles.label}>Name</Text>
       <TextInput
-        style={styles.input}
+        ref={nameInputRef}
+        style={[styles.input, errors.name && styles.inputError]}
         placeholder="Enter your name"
         value={name}
-        onChangeText={setName}
+        onChangeText={(text) => {
+          setName(text);
+          validateName(text);
+        }}
       />
+      {errors.name ? <Text style={styles.fieldError}>{errors.name}</Text> : null}
 
       <Text style={styles.label}>Email</Text>
       <TextInput
-        style={styles.input}
+        ref={emailInputRef}
+        style={[styles.input, errors.email && styles.inputError]}
         placeholder="Enter your email"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => {
+          setEmail(text);
+          validateEmail(text);
+        }}
         keyboardType="email-address"
         autoCapitalize="none"
       />
-
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {errors.email ? <Text style={styles.fieldError}>{errors.email}</Text> : null}
 
       <Pressable style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Submit</Text>
       </Pressable>
+
+      {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
 
       {lastSubmitted && (
         <View style={styles.summaryCard}>
@@ -91,9 +152,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     backgroundColor: '#f9fafb',
   },
-  error: {
+  inputError: {
+    borderColor: '#b91c1c',
+    backgroundColor: '#fef2f2',
+  },
+  fieldError: {
     color: '#b91c1c',
-    marginTop: 8,
+    marginTop: 4,
     fontSize: 13,
   },
   button: {
@@ -107,6 +172,12 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '600',
+  },
+  submitError: {
+    color: '#b91c1c',
+    marginTop: 8,
+    fontSize: 13,
+    textAlign: 'center',
   },
   summaryCard: {
     marginTop: 16,
